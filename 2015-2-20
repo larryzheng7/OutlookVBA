@@ -1,0 +1,1637 @@
+Public Sub ATT_WithFolder()
+
+'This sub save atts in the mail preview window!!! - Most frequently used function !
+
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel As Outlook.Selection
+Dim eg, myMMitem, myAttachments, NB, Df, RT, mFolder, mySubFolders, PfL, NF
+Dim NewFolder, PA, DP As String
+Dim MI, i, j, DIT As Double
+
+DP = SpecialFolder(5, "Mail_Att")
+
+If Exists(False, DP, False) = False Then
+        RT = MsgBox("The Target Path :  " & DP & " Does Not Exist !", vbCritical, "ZOL :(")
+        Exit Sub
+End If
+ 
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+Set eg = CreateObject("Scripting.FileSystemObject")
+   
+If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+   
+   'Set mymmitem = myOlSel.Item(1)
+For MI = 1 To myOLsel.Count
+        Set myMMitem = myOLsel.Item(MI)
+        Set myAttachments = myMMitem.Attachments
+                    
+        If myAttachments.Count = 0 Then RT = MsgBox("No Attachments are Found in the Last Mail  " & myMMitem.Subject, vbCritical, "ZOL :("): GoTo nex2:
+         j = 0
+        NewFolder = DP & LegalFileName(myMMitem.Subject) & "-" & Tim() & "\"
+            
+            If Exists(False, NewFolder, False) = False Then
+                    Set NF = eg.CreateFolder(NewFolder)
+            Else
+                    NB = MsgBox("Folder with Path :  " & NewFolder & " Exists ! Replace or Not ?", vbYesNoCancel, "ZOL :| ")
+                    If NB = vbCancel Then GoTo nex1
+                    If NB = vbNo Then Exit Sub
+            End If
+            
+            For i = 1 To myAttachments.Count
+                    PA = NewFolder & myAttachments.Item(i).DisplayName
+                    myAttachments.Item(i).SaveAsFile PA
+                    j = j + 1
+            Next i
+        
+nex1:
+        
+        'g = MsgBox(j & " Attachement(s) Has(ve) Been Saved to " & Chr(13) & Newfolder & Chr(13) & "Open The Folder Now ? ", vbYesNo, "ZOL :)")
+        'If g = vbYes Then
+        myMMitem.SaveAs NewFolder & "\" & LegalFileName(myMMitem.Subject) & ".txt", olTXT
+        Df = Shell("explorer.exe " & NewFolder, vbNormalFocus)
+nex2:
+Next MI
+
+'Clear Old Folders
+DIT = 15
+
+Set PfL = eg.GetFolder(DP)
+
+Set mySubFolders = PfL.subfolders
+    
+For Each mFolder In mySubFolders
+        'MsgBox mFolder.Path
+        'MsgBox Now() - mFolder.DateCreated
+        If Now() - mFolder.DateCreated > DIT Then eg.deletefolder mFolder.Path, True
+Next
+
+Set eg = Nothing
+
+End Sub
+
+Function Tim()
+y = Year(Now())
+M = Month(Now())
+D = Day(Now())
+ho = Hour(Now())
+min = Minute(Now())
+sec = Second(Now())
+If M < 10 Then M = "0" & M
+If ho < 10 Then ho = "0" & ho
+If min < 10 Then min = "0" & min
+If sec < 10 Then sec = "0" & sec
+If D < 10 Then D = "0" & D
+Tim = M & D & y & "_" & ho & min & sec
+End Function
+
+Sub stesub()
+MsgBox Tim()
+End Sub
+
+Public Sub ATT_Mail_WithFolder()
+
+'Save attachements in a mail open view !!!!!!!!!!!!!!!!!!!!
+
+Dim myInspector As Outlook.Inspector
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel As Outlook.Selection
+Dim eg, myMMitem, myAttachments, NB, Df, RT, mFolder, myFolder, mySubFolders, PfL, NF, myNameSpace
+Dim NewFolder, PA, DP As String
+Dim MI, i, j, DIT As Double
+
+DP = SpecialFolder(5, "Mail_Att")
+Set eg = CreateObject("Scripting.FileSystemObject")
+
+If eg.FolderExists(DP) = False Then
+RT = MsgBox("The Target Path :  " & DP & " Does Not Exist !", vbCritical, "ZOL :(")
+Exit Sub
+End If
+
+'Dim myItem As Outlook.MailItem
+     
+'Set myOlapp = CreateObject("Outlook.Application")
+Set myNameSpace = Application.GetNamespace("MAPI")
+Set myFolder = myNameSpace.GetDefaultFolder(olFolderInbox)
+    
+   If myFolder.Items.Count = 0 Then MsgBox "No Mails Found ! ": End
+   
+   'MsgBox myfolder.Items.Count
+   
+   Set myItem = myFolder.Items(myFolder.Items.Count)
+   'Set myInspector = myItem.GetInspector
+   Set myInspector = Application.ActiveInspector
+   Set myMMitem = myInspector.CurrentItem
+   Set myAttachments = myMMitem.Attachments
+            
+If myAttachments.Count = 0 Then gh = MsgBox("No Attachments are Found in current Mail ! ", vbCritical, "ZOL :("): Exit Sub
+   j = 0
+    
+    'Newfolder = DP & Tim() & "\"
+    'NewFolder = DP & Tim() & "-" & LegalFileName(myMMitem.Subject) & "\"
+    NewFolder = DP & LegalFileName(myMMitem.Subject) & "-" & Tim() & "\"
+
+    If eg.FolderExists(NewFolder) = False Then
+       Set NF = eg.CreateFolder(NewFolder)
+    Else
+       NB = MsgBox("Folder with Path :  " & NewFolder & " Exists ! Replace or Not ?", vbYesNoCancel, "ZOL :| ")
+       If NB = vbCancel Then GoTo nex1
+       If NB = vbNo Then Exit Sub
+    End If
+    
+    For i = 1 To myAttachments.Count
+       PA = NewFolder & myAttachments.Item(i).DisplayName
+       myAttachments.Item(i).SaveAsFile PA
+       j = j + 1
+    Next i
+
+nex1:
+
+'g = MsgBox(j & " Attachement(s) Has(ve) Been Saved to " & Chr(13) & Newfolder & Chr(13) & "Open The Folder Now ? ", vbYesNo, "ZOL :)")
+'If g = vbYes Then
+myMMitem.SaveAs NewFolder & "\" & LegalFileName(myMMitem.Subject) & ".txt", olTXT
+Df = Shell("explorer.exe " & NewFolder, vbNormalFocus)
+      
+ 'Clear Old Folders
+DIT = 15
+Set PfL = eg.GetFolder(DP)
+Set mySubFolders = PfL.subfolders
+    
+For Each mFolder In mySubFolders
+        'MsgBox mFolder.Path
+        'MsgBox Now() - mFolder.DateCreated
+        If Now() - mFolder.DateCreated > DIT Then eg.deletefolder mFolder.Path, True
+Next
+      
+End Sub
+
+Function SpecialFolder(ByVal SI As Byte, ByVal subFolder As String)
+
+'get all special folders
+'1 AllUsersDesktop
+'2 AllUsersStartMenu
+'3 AllUsersPrograms
+'4 AllUsersStartup
+'5 Desktop
+'6 Favorites
+'7 Fonts
+'8 MyDocuments
+'9 NetHood
+'10 PrintHood
+'11 Programs
+'12 Recent
+'13 SendTo
+'14 StartMenu
+'15 Startup
+'16 Templates
+'17 Temp
+'18 CurrentFolder
+
+Dim ObjShell
+Set ObjShell = CreateObject("WScript.Shell")
+
+Select Case SI
+
+Case 1
+SpecialFolder = ObjShell.specialfolders.Item("AllUsersDesktop") & "\"
+
+Case 2
+SpecialFolder = ObjShell.specialfolders.Item("AllUsersStartMenu") & "\"
+
+Case 3
+SpecialFolder = ObjShell.specialfolders.Item("AllUsersPrograms") & "\"
+
+Case 4
+SpecialFolder = ObjShell.specialfolders.Item("AllUsersStartup") & "\"
+
+Case 5
+SpecialFolder = ObjShell.specialfolders.Item("Desktop") & "\"
+
+Case 6
+SpecialFolder = ObjShell.specialfolders.Item("Favorites") & "\"
+
+Case 7
+SpecialFolder = ObjShell.specialfolders.Item("Fonts") & "\"
+
+Case 8
+SpecialFolder = ObjShell.specialfolders.Item("MyDocuments") & "\"
+
+Case 9
+SpecialFolder = ObjShell.specialfolders.Item("NetHood") & "\"
+
+Case 10
+SpecialFolder = ObjShell.specialfolders.Item("PrintHood") & "\"
+
+Case 11
+SpecialFolder = ObjShell.specialfolders.Item("Programs") & "\"
+
+Case 12
+SpecialFolder = ObjShell.specialfolders.Item("Recent") & "\"
+
+Case 13
+SpecialFolder = ObjShell.specialfolders.Item("SendTo") & "\"
+
+Case 14
+SpecialFolder = ObjShell.specialfolders.Item("StartMenu") & "\"
+
+Case 15
+SpecialFolder = ObjShell.specialfolders.Item("Startup") & "\"
+
+Case 16
+SpecialFolder = ObjShell.specialfolders.Item("Templates") & "\"
+
+Case 17
+Dim WshSysEnv
+Set WshSysEnv = ObjShell.Environment("SYSTEM")
+SpecialFolder = WshSysEnv("TEMP") & "\"
+Set WshSysEnv = Nothing
+
+Case 18
+SpecialFolder = ObjShell.CurrentDirectory & "\"
+
+End Select
+Set ObjShell = Nothing
+
+If subFolder = "" Then Exit Function
+
+Set eg = CreateObject("Scripting.FileSystemObject")
+
+If Right(subFolder, 1) <> "\" Then subFolder = subFolder & "\"
+SpecialFolder = SpecialFolder & subFolder
+
+If eg.FolderExists(SpecialFolder) = False Then
+
+        Set o = eg.CreateFolder(SpecialFolder)
+
+End If
+
+End Function
+Sub WeeklyStatus()
+
+Dim DP, T As String
+'DP = SpecialFolder(5, "")
+DP = "C:\Google Drive\TH\"
+Dim TIA As Workbook
+Dim TS As worksheet
+Dim E As Excel.Application
+Dim StatusStr, RatingStr, IssueStr, FWStr, TIAName, HM As String
+Dim IsPF, IsFW, IsPL As Boolean
+
+Dim RR As Double
+RR = 7
+TIAName = DP & "TIA.xlsm"
+
+If Exists(True, TIAName, False) = False Then
+        MsgBox "Can Not Find " & TIAName, vbCritical
+        End
+End If
+
+Set E = New Excel.Application
+Set TIA = E.Workbooks.Open(TIAName, False, True)
+Set TS = TIA.Sheets("MDB")
+
+With TS
+        Do Until .Cells(RR, 1) = ""
+                
+                If .Cells(RR, 2) = "O" Then
+                        
+                        If .Cells(RR, 14) > Fix(Now()) Then
+                                RatingStr = ""
+                                IssueStr = ""
+                                FWStr = "<br><b>Fieldwork Time:</b> " & .Cells(RR, 14) & " - " & .Cells(RR, 15)
+                                If Now() < .Cells(RR, 50) Then
+                                        StatusStr = "<br><b>Status:</b> Planning - APM review meeting scheduled on " & .Cells(RR, 50)
+                                Else
+                                        StatusStr = "<br><b>Status:</b> Planning - APM has been approved on " & .Cells(RR, 50)
+                                End If
+                                
+                                If IsPL = False Then
+                                        T = T & "<b>PLANNING</b><br>" & String(85, "-") & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                        IsPL = True
+                                Else
+                                        T = T & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                End If
+                        
+                        Else
+                                FWStr = ""
+                                If .Cells(RR, 15) > Fix(Now()) Or .Cells(RR, 15) = Fix(Now()) Then
+                                            StatusStr = "" '"<br><b>Status:</b> Fieldwork"
+                                            RatingStr = "<br><b>Suggested Rating:</b> Too soon to tell/Satisfactory/Needs Improvement"
+                                            IssueStr = "<br><b>Issue(s):</b> "
+                                            
+                                            If IsFW = False Then
+                                                        T = T & "<b>FIELDWORK</b><br>" & String(85, "-") & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                                        IsFW = True
+                                            Else
+                                                        T = T & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                            End If
+                                Else
+                                            StatusStr = "<br><b>Status:</b> " & Fix(Now() - .Cells(RR, 15)) & " days post-fieldwork. Paul/Ann is reviewing the report."
+                                            RatingStr = "<br><b>Suggested Rating:</b> Satisfactory/Needs Improvement"
+                                            IssueStr = "<br><b>Issue(s):</b> "
+                                
+                                            If IsPF = False Then
+                                                        T = T & "<b>POST-FIELDWORK</b><br>" & String(85, "-") & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                                        IsPF = True
+                                            Else
+                                                        'T = T & String(70, "-") & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                                        T = T & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                                            End If
+                                            
+                                End If
+                        End If
+                        
+                        'T = T & String(70, "-") & "<br><b>Unit:</b>   " & .Cells(RR, 6) & " - " & .Cells(RR, 5) & FWStr & StatusStr & RatingStr & IssueStr & "<br><b>Other:</b> <br><br>"
+                
+                End If
+                RR = RR + 1
+        Loop
+
+End With
+TIA.Close False
+
+Dim RpE As MailItem
+Set RpE = Application.CreateItem(olMailItem)
+'HM = RpE.HTMLBody
+  
+With RpE
+        .Recipients.Add "Ann Lipanski"
+        .Recipients.Add "Paul Broadfoot"
+        .Recipients.ResolveAll
+        .Subject = "Weekly Update - " & Fix(Now())
+        .Display
+        .HTMLBody = "<html><font face=Calibri><font size=4> Ann and Paul,  <br><br> See my weekly update as below. Have a great weekend! <br><br>" & T & .HTMLBody
+        '.HTMLBody = "Ann and Paul,  <br><br> See my weekly update as below. Have a great weekend! <br><br>" & T & String(70, "-") & "<br><b>Data Analytic Team: </b></size><br>" & .HTMLBody
+End With
+
+Set E = Nothing
+
+End Sub
+Function Exists(ByVal IsFile As Boolean, ByVal FP As String, ByVal NeedNotice As Boolean) As Boolean
+Dim FO As Object
+Set FO = CreateObject("Scripting.FileSystemObject")
+Exists = False
+
+If IsFile Then
+         If FO.FileExists(FP) Then
+                Exists = True
+        Else
+                If NeedNotice Then MsgBox "Can Not Find File : " & FP
+        End If
+Else
+        If FO.FolderExists(FP) Then
+                Exists = True
+        Else
+                If NeedNotice Then MsgBox "Can Not Find Path : " & FP
+        End If
+End If
+
+Set FO = Nothing
+End Function
+
+Function DateString(ByVal DS As Date) As String
+Dim M, D As Byte
+
+M = Month(DS)
+D = Day(DS)
+DateString = Trim(Str(Year(DS)))
+
+If M < 10 Then
+DateString = DateString & "-0" & Trim(Str(M))
+Else
+DateString = DateString & "-" & Trim(Str(M))
+End If
+
+If D < 10 Then
+DateString = DateString & "-0" & Trim(Str(D))
+Else
+DateString = DateString & "-" & Trim(Str(D))
+End If
+
+End Function
+
+
+
+Function LegalFileName(Fn As String)
+
+LegalFileName = Fn
+LegalFileName = Replace(LegalFileName, "@", "-")
+LegalFileName = Replace(LegalFileName, "=", "-")
+LegalFileName = Replace(LegalFileName, "?¡§oo", "-")
+LegalFileName = Replace(LegalFileName, "'", "-")
+LegalFileName = Replace(LegalFileName, "'", "-")
+LegalFileName = Replace(LegalFileName, "?¡§o?", "-")
+LegalFileName = Replace(LegalFileName, "?¡§o??¨¬", "-")
+LegalFileName = Replace(LegalFileName, "?¡§o?", "-")
+LegalFileName = Replace(LegalFileName, "??¡§o", "-")
+LegalFileName = Replace(LegalFileName, "?¡§o?", "-")
+LegalFileName = Replace(LegalFileName, "~", "-")
+LegalFileName = Replace(LegalFileName, ":", "-")
+LegalFileName = Replace(LegalFileName, "/", "-")
+LegalFileName = Replace(LegalFileName, "\", "-")
+LegalFileName = Replace(LegalFileName, ",", "-")
+LegalFileName = Replace(LegalFileName, ";", "-")
+LegalFileName = Replace(LegalFileName, "!", "-")
+LegalFileName = Replace(LegalFileName, "*", "-")
+LegalFileName = Replace(LegalFileName, "|", "-")
+LegalFileName = Replace(LegalFileName, "?", "-")
+LegalFileName = Replace(LegalFileName, "'", "-")
+LegalFileName = Replace(LegalFileName, Chr(34), "-")
+LegalFileName = Replace(LegalFileName, ">", "-")
+LegalFileName = Replace(LegalFileName, "<", "-")
+LegalFileName = Replace(LegalFileName, " ", "_")
+LegalFileName = Replace(LegalFileName, ".", "")
+
+
+If Len(LegalFileName) > 25 Then
+
+LegalFileName = Left(LegalFileName, 20)
+
+End If
+
+End Function
+Public Sub SavePDFandMail()
+
+' This sub save atts in the mail preview window!!! - Most frequently used function !
+Dim DPP As String
+DP = SpecialFolder(5, "")
+DPP = "C:\Users\zhengl1\Documents\My Box Files\TRW\IAReports\"
+Set eg = CreateObject("Scripting.FileSystemObject")
+
+If eg.FolderExists(DP) = False Then
+RT = MsgBox("The Target Path :  " & DP & " Does Not Exist !", vbCritical, "ZOL :(")
+Exit Sub
+End If
+
+   Dim myOLexp As Outlook.Explorer
+   Dim myOLsel As Outlook.Selection
+   Set myOLexp = Application.ActiveExplorer
+   Set myOLsel = myOLexp.Selection
+   
+    If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+   
+   'Set mymmitem = myOlSel.Item(1)
+For MI = 1 To myOLsel.Count
+   Set myMMitem = myOLsel.Item(MI)
+   
+   Set myAttachments = myMMitem.Attachments
+            
+    If myAttachments.Count = 0 Then gh = MsgBox("No Attachments are Found in the Last Mail  " & myMMitem.Subject, vbCritical, "ZOL :("): GoTo nex2:
+       
+    For i = 1 To myAttachments.Count
+       PA = DP & myAttachments.Item(i).DisplayName
+       ppa = DPP & myAttachments.Item(i).DisplayName
+       If UCase(Right(PA, 3)) = "PDF" Then
+                myAttachments.Item(i).SaveAsFile PA
+                If InStr(1, UCase(PA), "NOTIFICATION") = 0 Then
+                        myAttachments.Item(i).SaveAsFile ppa
+                End If
+       End If
+    
+    Next i
+
+nex1:
+
+myMMitem.SaveAs DP & LegalFileName(myMMitem.Subject) & ".msg", olMSGUnicode
+Df = Shell("explorer.exe " & DP, vbNormalFocus)
+nex2:
+Next MI
+
+End Sub
+
+
+Public Sub GetGlobal()
+
+    Dim Addbox As Object
+    Dim outApp As Object, outNS As Outlook.NameSpace
+    Dim myAddressList As Outlook.AddressList
+    Dim outItem As Object
+    
+    Set outApp = CreateObject("Outlook.Application")
+    Set outNS = outApp.GetNamespace("MAPI")
+    Set myAddressList = outNS.Session.AddressLists("Global Address List")
+     
+    For Each outItem In myAddressList.AddressEntries
+        'Addbox.AddItem outItem
+        MsgBox outItem.FirstName
+    Next
+    'MsgBox myAddressList.AddressEntries.Count
+    
+    Set outApp = Nothing
+
+
+End Sub
+
+
+Public Sub SaveTracker_WithFolder()
+  
+Dim Tracker As String
+Dim TraName As String
+Tracker = "C:\Documents and Settings\nbkimko\Desktop\IRR\Tracker\"
+Set eg = CreateObject("Scripting.FileSystemObject")
+
+   M = 0
+   Dim myOLexp As Outlook.Explorer
+   Dim myOLsel As Outlook.Selection
+   Set myOLexp = Application.ActiveExplorer
+   Set myOLsel = myOLexp.Selection
+   
+   If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+   Set myMMitem = myOLsel.Item(1)
+   Set myAttachments = myMMitem.Attachments
+   If myAttachments.Count = 0 Then gh = MsgBox("No Attachments are Found in the Last Mail  " & myMMitem.Subject, vbCritical, "ZOL :("): Exit Sub
+   j = 0
+    For i = 1 To myAttachments.Count
+       'pa = newfolder & myattachments.Item(i).DisplayName
+       'myattachments.Item(i).SaveAsFile pa
+       j = j + 1
+       h = myAttachments.Item(i).DisplayName
+       If UCase(Right(h, 3)) = "XLS" Or UCase(Right(h, 3)) = "LSX" Then
+            Q = 1
+            Do Until Left(Right(h, Q), 1) = "."
+                    Q = Q + 1
+            Loop
+            TraName = Left(h, Len(h) - Q) & "_Larry_" & Tim() & Right(h, Q)
+            PA = Tracker & TraName
+            myAttachments.Item(i).SaveAsFile PA
+            'eg.CopyFile pa, Tracker & TraName
+            M = M + 1
+       End If
+    Next i
+
+nex1:
+'mymmitem.SaveAs newfolder & "\" & LegalFileName(mymmitem.Subject) & ".txt", olTXT
+'df = Shell("explorer.exe " & newfolder, vbNormalFocus)
+
+If M > 0 Then Df = Shell("explorer.exe " & Tracker, vbNormalFocus)
+
+End Sub
+
+Sub SendTracker()
+
+Dim Tracker As String
+Dim TraName As String
+Tracker = "C:\Documents and Settings\nbkimko\Desktop\IRR\Tracker\"
+Set eg = CreateObject("Scripting.FileSystemObject")
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel
+Dim RpE As MailItem
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+Set RpE = myOLsel.Item(1).Reply
+Dim mFolder
+Dim MFile
+Dim F
+Dim FF
+Dim CP
+Set mFolder = eg.GetFolder(Tracker)
+Set MF = mFolder.Files
+
+For Each F In MF
+        If F.DateLastModified > CP Then
+                CP = F.DateLastModified
+                Set FF = F
+        End If
+Next
+  
+With RpE
+
+        .HTMLBody = "Alaine,    <br><br>  See my update as attached. Thanks! <br><br>" & "Attachment Last Modified on:  " & CP & .HTMLBody
+        .Display
+        .Attachments.Add Tracker & FF.Name
+
+End With
+
+End Sub
+
+
+Public Sub InviteWho()
+
+Set eg = CreateObject("Scripting.FileSystemObject")
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel
+Dim RpE As MailItem
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+Set myinv = myOLsel.Item(1)
+Set R = myinv.Recipients
+Set RpE = Application.CreateItem(olMailItem)
+
+For Each C In R
+
+    If C.Type = 0 Then o = "Orginized by : " & C.Name
+    If C.Type = 2 Then
+            Set B = RpE.Recipients.Add(C)
+            B.Type = olCC
+            P = P & "/" & C.Name
+    Else
+            RpE.Recipients.Add C
+            Re = Re & "/" & C.Name
+    End If
+    
+Next
+
+BS = myinv.Subject & Chr(13) & Chr(13) & "Begin: " & myinv.Start & Chr(13) & "End: " & myinv.End & Chr(13) & "Location: " & myinv.Location
+BS = BS & Chr(13) & o & Chr(13) & "Required: " & Re & Chr(13) & "Optional: " & P
+
+RpE.Body = BS
+RpE.Display
+RpE.Recipients.ResolveAll
+
+End Sub
+
+
+'Getex - Get file's extention name,"N/A" for no extention name found
+
+Function GetEx(ByVal Pat As String) As String
+
+Dim o As Double
+Dim PLen As Double
+Dim s1 As String
+
+PLen = Len(Pat)
+
+For o = 1 To PLen
+        s1 = Left(Right(Pat, o), 1)
+        If s1 = "." Then Exit For
+Next o
+
+If o = PLen + 1 Then GetEx = "N/A!": Exit Function
+
+GetEx = Right(Pat, o - 1)
+End Function
+
+
+Sub SendtoWho()
+
+   Dim i As Long
+   Dim myOLexp As Outlook.Explorer
+   Dim myOLsel As Outlook.Selection
+   Set myOLexp = Application.ActiveExplorer
+   Set myOLsel = myOLexp.Selection
+   
+   If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+   Set myMMitem = myOLsel.Item(1)
+   
+   Call RecipientsToExcel(myMMitem)
+   
+  
+End Sub
+
+
+Sub WhoSend()
+
+'work in open mail view
+Dim myInspector As Outlook.Inspector
+Set myOlapp = CreateObject("Outlook.Application")
+Set myInspector = ActiveInspector
+Set myMMitem = myInspector.CurrentItem
+
+'MsgBox myMMitem.MessageClass
+
+Call RecipientsToExcel(myMMitem)
+
+End Sub
+
+Sub RecipientsToExcel(myMMitem)
+
+   Dim i As Long
+   Dim Ex As Object
+   Set Ex = CreateObject("Excel.application")
+   Ex.Visible = True
+   Dim BK As Workbook
+   Dim WS As worksheet
+   Set BK = Ex.Workbooks.Add
+   Set WS = BK.Sheets(1)
+   
+   i = 7
+   With WS
+        
+        For Each C In myMMitem.Recipients
+                .Cells(i, 1) = i - 6
+                .Cells(i, 2) = C.Name
+                
+                If myMMitem.MessageClass = "IPM.Note" Then
+                        Select Case C.Type
+                            Case 1
+                            .Cells(i, 3) = "TO"
+                            Case 2
+                            .Cells(i, 3) = "CC"
+                            Case 3
+                            .Cells(i, 3) = "BCC"
+                         End Select
+                End If
+                
+                If myMMitem.MessageClass = "IPM.Appointment" Then
+                        Select Case C.Type
+                            Case 0
+                            .Cells(i, 3) = "Organizer"
+                            Case 1
+                            .Cells(i, 3) = "Required"
+                            Case 2
+                            .Cells(i, 3) = "Optional"
+                            Case 3
+                            .Cells(i, 3) = "Resource"
+                         End Select
+                End If
+                
+                
+                x = Split(.Cells(i, 2), ",")
+                If UBound(x) > 0 Then .Cells(i, 4) = Trim(x(1))
+                .Cells(i, 5) = Trim(x(0))
+                '.Cells(i, 6) = c.Class
+                
+                i = i + 1
+        Next
+        .Columns("B:K").EntireColumn.AutoFit
+        
+  End With
+
+End Sub
+
+Public Sub MailFollow_Acc()
+  
+Dim Acc, db, RS, myOLexp, myOLsel As Object
+Dim D, i As Double
+Dim TM
+Dim SaveOrNot
+Dim FB, TableN, LoadMethod, myNotes, DBFile As String
+  
+DBFile = InputBox("Which Database ?", "MailFollow_Acc", "Inbox2014")
+If DBFile = "" Then End
+  
+FB = SpecialFolder(5, "") & DBFile & ".accdb"
+'FB = SpecialFolder(5, "") & "Sent2013.accdb"
+TableN = "MailFo"
+
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+  
+If myOLsel.Count = 1 Then
+        LoadMethod = "S"
+        SaveOrNot = "True"
+        myNotes = InputBox("Any notes?") & " " & Now()
+        If myOLsel(1).SenderName = "Larry Zheng" Then FB = SpecialFolder(5, "") & "Sent2013.accdb"
+Else
+        LoadMethod = "B"
+        'SaveOrNot = InputBox("Do you want to save a copy of the mails to Database ?", "", "Y")
+        SaveOrNot = "Y"
+        If Not UCase(SaveOrNot) = "Y" Then
+                SaveOrNot = "False"
+        Else
+                SaveOrNot = "True"
+        End If
+        myNotes = "Batch Loaded on " & Now()
+End If
+  
+Set Acc = CreateObject("Access.Application")
+'Acc.Application.Visible = False
+Acc.OpenCurrentDatabase FB
+Set RS = Acc.Application.CurrentDb.OpenRecordset("SELECT * FROM " & TableN)
+  
+For Each TM In myOLsel
+       Call ExtraMail(RS, TM.MessageClass, LoadMethod, TM, SaveOrNot, myNotes)
+Next
+  
+RS.Close
+Set RS = Nothing
+  
+Acc.CloseCurrentDatabase
+Acc.Application.Quit acExit
+Set Acc = Nothing
+  
+End Sub
+  
+Public Sub ExtraMail(RS, ByVal MsgClass As String, ByVal LoadMethod As String, TM, _
+ByVal SaveMsg As Boolean, ByVal myNotes As String)
+  
+Dim RSMail As Object
+Dim RR, TR, BR, CR, D, i As Double
+Dim cXLS, cDoc, cPPT, cPDF, cTxT, cPIC, cZIP, cMSG, cWEB, cOth As Double
+Dim AddStr, AttStr, TempAN, TEX, MailN, FullN As String
+  
+RR = TM.Recipients.Count
+cXLS = 0
+cDoc = 0
+cPPT = 0
+cMSG = 0
+cWEB = 0
+cPDF = 0
+cZIP = 0
+cTxT = 0
+cPIC = 0
+  
+For D = 1 To TM.Attachments.Count
+            TempAN = TM.Attachments.Item(D).DisplayName
+            AttStr = AttStr & "\" & TempAN
+            TEX = UCase(GetEx(TempAN))
+            If InStr("XLS/XLSX/XLSM/XLSB/CSV", TEX) > 0 Then cXLS = cXLS + 1
+            If InStr("DOC/DOCX/DOCM/DOTM/RTF/DOT", TEX) > 0 Then cDoc = cDoc + 1
+            If InStr("PDF", TEX) > 0 Then cPDF = cPDF + 1
+            If InStr("TXT", TEX) > 0 Then cTxT = cTxT + 1
+            If InStr("MSG", TEX) > 0 Then cMSG = cMSG + 1
+            If InStr("PPTM/PPS/PPSM/PPTX/PPT/PPSM/POT", TEX) > 0 Then cPPT = cPPT + 1
+            If InStr("BMP/TIF/JPG/JPEG/GIF/PNG/XPS", TEX) > 0 Then cPIC = cPIC + 1
+            If InStr("ZIP/7Z/RAR/ARJ", TEX) > 0 Then cZIP = cZIP + 1
+            If InStr("HTML/HTM/MHT/MHTML", TEX) > 0 Then cWEB = cWEB + 1
+Next D
+cOth = D - 1 - cXLS - cDoc - cPPT - cMSG - cPDF - cPIC - cZIP - cWEB - cTxT
+  
+RS.AddNew
+RS!Subject = TM.Subject
+RS!myNotes = myNotes
+RS!Attno = D - 1
+RS!SentOn = TM.SentOn
+RS!From = TM.SenderName
+RS!Attachments = AttStr
+RS!Size = Int(TM.Size / 1000)
+RS!mYear = Year(TM.SentOn)
+RS!mMon = Month(TM.SentOn)
+RS!mDay = Day(TM.SentOn)
+RS!mwd = Weekday(TM.SentOn) - 1
+RS!mH = Hour(TM.SentOn)
+RS!XLS = cXLS
+RS!DOC = cDoc
+RS!PPT = cPPT
+RS!MSG = cMSG
+RS!PDF = cPDF
+RS!TXT = cTxT
+RS!PIC = cPIC
+RS!ZIP = cZIP
+RS!WEB = cWEB
+RS!OTH = cOth
+RS!RR = RR
+RS!SenderAdd = TM.SenderEmailAddress
+RS!Body256 = Left(TM.Body, 256)
+'RS!EntryID = TM.EntryID
+  
+If SaveMsg Then
+
+                        MailN = Tim() & ".msg"
+                        FullN = SpecialFolder(5, "") & MailN
+                        TM.SaveAs FullN, olMSG
+                        RS!MsgName = MailN
+                                        
+                        Set RSMail = RS.Fields("ActualEmail").Value
+                        With RSMail
+                                .AddNew
+                                .Fields("FileData").LoadFromFile FullN
+                                .Update
+                       End With
+                        Set RSMail = Nothing
+                        Kill FullN
+End If
+  
+ If InStr(MsgClass, "IPM.Note") > 0 Then
+  
+                For Each C In TM.Recipients
+                AddStr = AddStr & "\" & C.Address
+                   Select Case C.Type
+                        Case olTo
+                                TR = TR + 1
+                        Case olCC
+                                CR = CR + 1
+                        Case olBCC
+                                BR = BR + 1
+                    End Select
+                Next
+                RS!Addresses = AddStr
+                RS!To = TM.To
+                RS!CC = TM.CC
+                RS!BCC = TM.BCC
+                RS!TR = TR
+                RS!CR = CR
+                RS!BR = BR
+                RS.Update
+End If
+  
+If InStr(MsgClass, "IPM.Appointment") > 0 Or InStr(MsgClass, "IPM.Schedule") > 0 Then
+  
+                For Each C In TM.Recipients
+                AddStr = AddStr & "\" & C.Address
+                    Select Case C.Type
+                        Case 1
+                                TR = TR + 1
+                        Case 2
+                                CR = CR + 1
+                        'Case olBCC
+                        '        BR = BR + 1
+                    End Select
+                Next
+                RS!Addresses = AddStr
+                RS!TR = TR
+                RS!CR = CR
+                'RS!BR = BR
+                RS.Update
+End If
+  
+End Sub
+
+Sub ForwardSelectedMail(ByVal mb As String, ByVal BadAC As String, ByVal mbda As String)
+
+    Dim myOLexp As Outlook.Explorer
+    Dim myOLsel As Outlook.Selection
+    Set myOLexp = Application.ActiveExplorer
+    Set myOLsel = myOLexp.Selection
+    Dim myItem As MailItem
+    Dim NoticeMail As MailItem
+    Dim oAccount As Outlook.Account
+       
+    If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+   
+    Set myItem = myOLsel.Item(1)
+    If myItem.ReceivedByName = BadAC Then g = MsgBox("Can Not Forword Mails from Internal Mail Account", vbCritical, "ZOL :("): End
+   
+    myOLsel.Item(1).BodyFormat = olFormatHTML
+          
+    Set myItem = myOLsel.Item(1).Forward
+       
+        myItem.BodyFormat = olFormatHTML
+        myItem.Subject = "TENK - " & myItem.Subject
+
+        If myOLsel.Item(1).Size / 1024 > 2048 Then
+       
+        Set NoticeMail = Application.CreateItem(olMailItem)
+        With NoticeMail
+       
+        .Subject = "A Mega Mail Was Just Sent to " & mb
+        .Body = "Subject : " & myItem.Subject & Chr(13) & Chr(13) & "Size : " & Fix(myOLsel.Item(1).Size / 1000) & "KB" & Chr(13) & Chr(13) & "Sent On : " & Now()
+        .Recipients.Add mb
+        .Send
+       
+        End With
+        myItem.Recipients.Add mbda
+       
+        Else
+       
+        myItem.Recipients.Add mb
+       
+        End If
+        
+
+        'For Each oAccount In Application.Session.Accounts
+        '        If oAccount.AccountType = olPop3 Then GoTo BegSend
+        'Next
+        'MsgBox "No POP3 Account Found !", vbCritical, "Auto Forward"
+        'Set myitem = Nothing
+        'End
+'BegSend:
+        'myitem.HTMLBody = "This mail is automatically forwarded by VBA code." & Chr(13) & Chr(13) & myitem.HTMLBody
+        'myItem.Display
+        'myitem.SendUsingAccount = Application.Session.Accounts("larry.c.zheng@gmail.com")
+        'myitem.SendUsingAccount = oAccount
+        myItem.Send
+
+End Sub
+
+Sub AutoNewEmail()
+
+Dim M As MailItem
+Dim S As String
+S = InputBox("Subject ?", "AutoNewEmail")
+Set M = Application.CreateItem(olMailItem)
+M.Recipients.Add "hulin57@gmail.com"
+M.Subject = S
+
+If S = "" Then
+        M.Display
+Else
+        M.Send
+End If
+
+End Sub
+Sub NewEggIAEmail()
+
+Dim M As MailItem
+Dim S As String
+S = InputBox("Subject ?", "AutoNewEmail")
+If S = "" Then End
+
+Set M = Application.CreateItem(olMailItem)
+Call AddMembers(M, 0)
+M.Recipients.ResolveAll
+M.Subject = S
+
+'If S = "" Then
+        M.Display
+'Else
+ '       M.Send
+'End If
+
+End Sub
+
+Sub CompDay()
+
+Dim M As MailItem
+Dim Q As String
+Dim B, C, D
+S = InputBox("Quarter ?", "AutoNewEmail")
+B = "Paul Broadfoot"
+C = "Darlene Brown"
+
+Set M = Application.CreateItem(olMailItem)
+Set D = M.Recipients.Add(C)
+D.Type = olCC
+'Set D = M.Recipients.Add(B)
+'D.Type = olCC
+M.Recipients.Add "Annette Daniel"
+M.Recipients.ResolveAll
+M.Display
+M.Subject = "Comp Day(s) Earned in " & S & " - Annette"
+M.HTMLBody = "<html><font size=4>Annette, <br><br> Please be noted that you earned [  ] comp day(s) in " & S & M.HTMLBody
+Set M = Nothing
+
+Set M = Application.CreateItem(olMailItem)
+Set D = M.Recipients.Add(C)
+D.Type = olCC
+'Set D = M.Recipients.Add(B)
+'D.Type = olCC
+M.Recipients.Add "Javier Mena"
+M.Recipients.ResolveAll
+M.Display
+M.Subject = "Comp Day(s) Earned in " & S & " - Javier"
+M.HTMLBody = "<html><font size=4>Javier, <br><br> Please be noted that you earned [  ] comp day(s) in " & S & M.HTMLBody
+Set M = Nothing
+
+Set M = Application.CreateItem(olMailItem)
+Set D = M.Recipients.Add(C)
+D.Type = olCC
+'Set D = M.Recipients.Add(B)
+'D.Type = olCC
+M.Recipients.Add "Bob Horst"
+M.Recipients.ResolveAll
+M.Display
+M.Subject = "Comp Day(s) Earned in " & S & " - Bob"
+M.HTMLBody = "<html><font size=4>Bob, <br><br> Please be noted that you earned [  ] comp day(s) in " & S & M.HTMLBody
+Set M = Nothing
+
+Set M = Application.CreateItem(olMailItem)
+Set D = M.Recipients.Add(C)
+D.Type = olCC
+'Set D = M.Recipients.Add(B)
+'D.Type = olCC
+M.Recipients.Add "Valeria Santos"
+M.Recipients.ResolveAll
+M.Display
+M.Subject = "Comp Day(s) Earned in " & S & " - Valeria"
+M.HTMLBody = "<html><font size=4>Valeria, <br><br> Please be noted that you earned [  ] comp day(s) in " & S & M.HTMLBody
+Set M = Nothing
+End Sub
+
+Sub NewEggMeeting()
+
+Dim M As AppointmentItem
+Set M = Application.CreateItem(olAppointmentItem)
+M.MeetingStatus = olMeeting
+M.Location = "TBD"
+M.Subject = "IA Internal Meeting - "
+Call AddMembers(M, 0)
+'M.Recipients.Add "peter.j.lau@newegg.com"
+'M.Recipients.Add "calvin.s.hsu@newegg.com"
+'M.Recipients.Add "helene.h.huang@newegg.com"
+'M.Recipients.Add "crus0-204@newegg.com"
+'M.Recipients.Add "crus0-202@newegg.com"
+'M.Recipients.Add "crus0-203@newegg.com"
+'M.Recipients.Add "crus0-206@newegg.com"
+'M.Recipients.Add "crus0-04@newegg.com"
+'M.Recipients.Add "crus0-02@newegg.com"
+
+M.Recipients.ResolveAll
+M.Body = M.Body & Chr(13) & Chr(13) & Chr(13) & "Larry Zheng" & Chr(13) & "Internal Audit Manager" & Chr(13) & "larry.c.zheng@newegg.com" & Chr(13) & "626-271-9700 X 22123"
+M.Display
+
+
+End Sub
+Sub AddMembers(ByVal M As Object, ByVal Z As Byte)
+
+Select Case Z
+    Case 0 ' 0 - All IA US Team Members
+    M.Recipients.Add "peter.j.lau@newegg.com"
+    M.Recipients.Add "calvin.s.hsu@newegg.com"
+    M.Recipients.Add "helene.h.huang@newegg.com"
+    M.Recipients.Add "rachel.y.chik@newegg.com"
+    
+    Case 1 '1 -
+
+
+End Select
+
+
+End Sub
+Sub NewEggMeetingRoom()
+
+Dim M As AppointmentItem
+Set M = Application.CreateItem(olAppointmentItem)
+M.MeetingStatus = olMeeting
+M.Location = "20X"
+M.Subject = "IA Meeting Room"
+'M.Recipients.Add "peter.j.lau@newegg.com"
+'M.Recipients.Add "calvin.s.hsu@newegg.com"
+M.Recipients.Add "crus0-204@newegg.com"
+M.Recipients.Add "crus0-202@newegg.com"
+M.Recipients.Add "crus0-203@newegg.com"
+M.Recipients.Add "crus0-206@newegg.com"
+M.Recipients.Add "crus0-04@newegg.com"
+M.Recipients.Add "crus0-02@newegg.com"
+
+M.Recipients.ResolveAll
+M.Body = M.Body & Chr(13) & Chr(13) & Chr(13) & "Larry Zheng" & Chr(13) & "Internal Audit Manager" & Chr(13) & "larry.c.zheng@newegg.com" & Chr(13) & "626-271-9700 X 22123"
+M.Display
+
+
+End Sub
+
+Sub TimeTracking()
+
+Dim M As MailItem
+Dim S, W As String
+Dim TL, AL As String
+S = InputBox("Which Audit ?", "AutoNewEmail")
+W = InputBox("Which Week ?", "AutoNewEmail", "Final")
+If Not Val(W) = 0 Then W = "WK" & W
+
+If W = "Final" Then
+        TL = InputBox("Lead Name ?", "AutoNewEmail")
+        AL = "<br>" & TL & ",<br><br> Please load to TM so that we can finalize the project. Thanks! "
+End If
+
+Set M = Application.CreateItem(olMailItem)
+M.Recipients.Add "Paul Broadfoot"
+M.Recipients.ResolveAll
+M.Subject = "Time-Tracking - " & S & " - " & W
+M.Display
+M.HTMLBody = "<html><font face=Calibri><font size=4>Paul, <br><br>" & "Please find the Time-Tracking for " & S & " as attached. Thanks !<br>" & AL & M.HTMLBody
+
+End Sub
+
+Sub NewFeqText()
+'From Outlook View
+
+Dim M
+Dim T, T1, T2, T3, T4 As String
+Dim S
+Dim R, U As String
+
+Set M = Application.CreateItem(olMailItem)
+M.Display
+
+T1 = "Darlene, <br><br> See the revised documents as attached. Thanks!" & Chr(13)
+T2 = "Paul, <br><br> See the revised documents as attached. Thanks!" & Chr(13)
+T3 = "Darlene, <br><br> The attached evaluations have been loaded to sharefolder. Thanks!" & Chr(13)
+T4 = "Paul, <br><br> See the draft notification letter as attached. Thanks!" & Chr(13)
+
+S = InputBox("What you want to say ?" & Chr(13) & "1 - " & T1 & "2 - " & T2 & "3 - " & T3 & "4 - " & T4, "AutoNewEmail")
+
+If S = "" Then
+    M.Delete
+    End
+End If
+
+Select Case S
+
+        Case 1
+                T = T1
+        Case 2
+                T = T2
+        Case 3
+                T = T3
+                R = "Darlene Brown"
+                U = "Evaluation Forms - "
+        Case 4
+                T = T4
+                R = "Paul Broadfoot"
+                U = "Draft Audit Notification Letter - "
+End Select
+
+With M
+        
+        .HTMLBody = "<html><font face=Calibri><font size=4>" & T & M.HTMLBody
+        If Not R = "" Then
+                .Recipients.Add R
+                .Recipients.ResolveAll
+        End If
+        If Not U = "" Then .Subject = U
+        
+End With
+
+End Sub
+
+Sub FeqText()
+'From OpenMail View
+
+Dim myOlapp As Outlook.Application
+Dim myInspector As Outlook.Inspector
+Dim M
+Dim T, T1, T2, T3, T4, T5 As String
+Dim S As Double
+Dim R, U As String
+
+T1 = "Darlene, <br><br> See the revised documents as attached. Thanks!" & Chr(13)
+T2 = "Paul, <br><br> See the revised documents as attached. Thanks!" & Chr(13)
+T3 = "Darlene, <br><br> The attached evaluations have been loaded to share folder. Thanks!" & Chr(13)
+T4 = "Paul, <br><br> See the draft notification letter as attached. Thanks!" & Chr(13)
+T5 = "Darlene, <br><br> I approve to issue the attached report. Thanks!" & Chr(13)
+
+S = InputBox("What you want to say ?" & Chr(13) & "1 - " & T1 & "2 - " & T2 & "3 - " & T3 & "4 - " & T4 & "5 - " & T5, "AutoNewEmail")
+
+Select Case S
+
+        Case 1
+                T = T1
+        Case 2
+                T = T2
+        Case 3
+                T = T3
+                R = "Darlene Brown"
+                U = "Evaluation Forms - "
+        Case 4
+                T = T4
+                R = "Paul Broadfoot"
+                U = "Draft Audit Notification Letter - "
+        Case 5
+                T = T5
+
+End Select
+
+Set myInspector = Application.ActiveInspector
+Set M = myInspector.CurrentItem
+
+With M
+        
+        .HTMLBody = "<html><font face=Calibri><font size=4>" & T & M.HTMLBody
+        If Not R = "" Then
+                .Recipients.Add R
+                .Recipients.ResolveAll
+        End If
+        If Not U = "" Then .Subject = U
+        
+End With
+
+End Sub
+
+Sub ToHL()
+        Dim D
+        D = MsgBox("Auto forward this Email ?", vbYesNo, "Auto Forward")
+        If D = vbYes Then
+            Call ForwardSelectedMail("hulin57@gmail.com", "ZC", "hulin57@gmail.com")
+        End If
+End Sub
+
+Sub FollowupMail()
+
+'Used in Mail preview View
+
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel As Outlook.Selection
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+Dim myItem As MailItem
+Dim C, T
+Set myItem = myOLsel.Item(1).Forward
+T = InputBox("Do you need old attachements ?", "Follow_UP", "N")
+
+If T = "" Then End
+If UCase(T) = "N" Then
+        For i = 1 To myItem.Attachments.Count
+                myItem.Attachments.Remove (i)
+        Next i
+End If
+
+For Each C In myOLsel.Item(1).Recipients
+        myItem.Recipients.Add C
+Next
+
+With myItem
+        .Recipients.ResolveAll
+        .Display
+End With
+
+End Sub
+
+
+Private Sub Application_ItemLoad(ByVal Item As Object)
+
+End Sub
+
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+
+Dim myOlapp As New Outlook.Application
+Dim Acc, db, RS, SentMail  As Object
+Dim D, i As Double
+Dim myNameSpace, myFolder, myItem
+Dim FB, TableN, LoadMethod, myNotes As String
+
+Set myNameSpace = myOlapp.GetNamespace("MAPI")
+Set myFolder = myNameSpace.GetDefaultFolder(olFolderSentMail)
+Set myItem = myFolder.Items(myFolder.Items.Count)
+
+FB = SpecialFolder(5, "") & "Sent2014.accdb"
+TableN = "MailFo"
+myNotes = "Auto - SentItem " & " " & Now()
+ 
+Set Acc = CreateObject("Access.Application")
+Acc.OpenCurrentDatabase FB
+Set RS = Acc.Application.CurrentDb.OpenRecordset("SELECT * FROM " & TableN)
+Call ExtraMail(RS, myItem.MessageClass, "ATS", myItem, True, myNotes)
+  
+RS.Close
+Set RS = Nothing
+Acc.CloseCurrentDatabase
+Acc.Application.Quit acExit
+Set Acc = Nothing
+
+End Sub
+
+
+Private Sub Application_NewMailEx(ByVal EntryIDCollection As String)
+
+Dim varEntryIDs
+varEntryIDs = Split(EntryIDCollection, ",")
+ 
+Dim Acc, db, RS  As Object
+Dim D, i As Double
+Dim myNameSpace, myFolder, myItem
+Dim FB, TableN, LoadMethod, myNotes As String
+
+Set Acc = CreateObject("Access.Application")
+FB = SpecialFolder(5, "") & "Inbox2014.accdb"
+TableN = "MailFo"
+
+ 
+For i = 0 To UBound(varEntryIDs)
+
+            myNotes = "Auto - Inbox " & " " & Now()
+            Acc.OpenCurrentDatabase FB
+            Set RS = Acc.Application.CurrentDb.OpenRecordset("SELECT * FROM " & TableN)
+            Set myItem = Application.Session.GetItemFromID(varEntryIDs(i))
+            Call ExtraMail(RS, myItem.MessageClass, "ATI", myItem, True, myNotes)
+            RS.Close
+            Set RS = Nothing
+            Acc.CloseCurrentDatabase
+            Acc.Application.Quit acExit
+            Set Acc = Nothing
+
+Next
+
+End Sub
+
+Private Sub OldInboxCode()
+
+Dim varEntryIDs
+varEntryIDs = Split(EntryIDCollection, ",")
+ 
+Dim Acc, db, RS  As Object
+Dim D, i As Double
+Dim myNameSpace, myFolder, myItem
+Dim FB, TableN, LoadMethod, myNotes, LastEID, InboxEID As String
+
+Set Acc = CreateObject("Access.Application")
+FB = SpecialFolder(5, "") & "Inbox2014.accdb"
+TableN = "MailFo"
+
+Acc.OpenCurrentDatabase FB
+Set RS = Acc.Application.CurrentDb.OpenRecordset("SELECT * FROM " & TableN)
+Set myNameSpace = myOlapp.GetNamespace("MAPI")
+Set myFolder = myNameSpace.GetDefaultFolder(olFolderInbox)
+i = myFolder.Items.Count
+Set myItem = myFolder.Items(i)
+InboxEID = myItem.EntryID
+RS.MoveLast
+LastEID = RS!EntryID
+ 
+Do Until LastEID = InboxEID
+            myNotes = "Auto - Inbox " & " " & Now()
+            Call ExtraMail(RS, myItem.MessageClass, "ATI", myItem, True, myNotes)
+            RS.Close
+            Set RS = Nothing
+            Acc.CloseCurrentDatabase
+            Acc.Application.Quit acExit
+           Set Acc = Nothing
+           i = i - 1
+           Set myItem = myFolder.Items(i)
+Loop
+
+End Sub
+Public Sub SaveNEreports()
+
+Dim DPP As String
+DPP = "T:\Dept Folder\IA\Audit_Reports\2015\"
+Set eg = CreateObject("Scripting.FileSystemObject")
+
+If eg.FolderExists(DPP) = False Then
+RT = MsgBox("The Target Path :  " & DPP & " Does Not Exist !", vbCritical, "ZOL :(")
+Exit Sub
+End If
+
+   Dim myOLexp As Outlook.Explorer
+   Dim myOLsel As Outlook.Selection
+   Set myOLexp = Application.ActiveExplorer
+   Set myOLsel = myOLexp.Selection
+   
+    If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+   
+   'Set mymmitem = myOlSel.Item(1)
+For MI = 1 To myOLsel.Count
+   Set myMMitem = myOLsel.Item(MI)
+   
+   'Set myAttachments = myMMitem.Attachments
+            
+    'If myAttachments.Count = 0 Then gh = MsgBox("No Attachments are Found in the Last Mail  " & myMMitem.Subject, vbCritical, "ZOL :("): GoTo nex2:
+       
+    'For i = 1 To myAttachments.Count
+     '  PA = DP & myAttachments.Item(i).DisplayName
+      ' ppa = DPP & myAttachments.Item(i).DisplayName
+       'If UCase(Right(PA, 3)) = "PDF" Then
+        '        myAttachments.Item(i).SaveAsFile PA
+         '       If InStr(1, UCase(PA), "NOTIFICATION") = 0 Then
+          '              myAttachments.Item(i).SaveAsFile ppa
+           '     End If
+       'End If
+    
+    'Next i
+
+'nex1:
+
+myMMitem.SaveAs DPP & LegalFileName(myMMitem.Subject) & ".msg", olMSGUnicode
+Df = Shell("explorer.exe " & DPP, vbNormalFocus)
+'nex2:
+
+Next MI
+
+End Sub
+Sub LoadFeedbackForm()
+
+'First save file
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel As Outlook.Selection
+Dim eg, myMMitem, myAttachments, PA, DP, g, ExcelAtt
+
+DP = SpecialFolder(5, "Mail_Att")
+Set eg = CreateObject("Scripting.FileSystemObject")
+
+If eg.FolderExists(DP) = False Then
+        RT = MsgBox("The Target Path :  " & DP & " Does Not Exist !", vbCritical, "ZOL :(")
+        Exit Sub
+End If
+ 
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+   
+If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+Set myMMitem = myOLsel.Item(1)
+Set myAttachments = myMMitem.Attachments
+If myAttachments.Count = 0 Then RT = MsgBox("No Attachments are Found in the Last Mail  " & myMMitem.Subject, vbCritical, "ZOL :("): Exit Sub
+NewFolder = DP & LegalFileName(myMMitem.Subject) & "-" & Tim() & "\"
+            If eg.FolderExists(NewFolder) = False Then
+                    Set NF = eg.CreateFolder(NewFolder)
+            Else
+                    NB = MsgBox("Folder with Path :  " & NewFolder & " Exists ! Replace or Not ?", vbYesNoCancel, "ZOL :| ")
+                    If NB = vbCancel Then Exit Sub
+                    If NB = vbNo Then Exit Sub
+            End If
+
+For Each ExcelAtt In myAttachments
+    If UCase(GetEx(ExcelAtt.DisplayName)) = "XLSX" Or UCase(GetEx(ExcelAtt.DisplayName)) = "XLS" Then
+            PA = NewFolder & ExcelAtt.DisplayName
+            ExcelAtt.SaveAsFile PA
+            Exit For
+    End If
+Next
+
+If PA = NewFolder Then 'No Excel File was found !
+        RT = MsgBox("No Excel Attachments are Found in the Last Mail", vbCritical, "ZOL")
+        End
+End If
+
+Dim Att, Exc, j, Q, Ave
+Dim WB, MDB As Excel.Workbook
+Dim WS, FBS As Excel.worksheet
+Dim WR, RR, i As Integer
+
+j = InputBox("Project ID ?")
+Q = InputBox("Which Quarter (1-4) ?")
+
+WR = 7
+Set Exc = CreateObject("Excel.Application")
+Exc.Visible = True
+Set WB = Exc.Workbooks.Open(PA, True)
+Set WS = WB.Worksheets(1)
+Set MDB = Exc.Workbooks.Open("T:\Dept Folder\IA\Audit_Projects\AP_MasterDatabase_V1.xlsm", False)
+Set FBS = MDB.Worksheets("Feedback")
+
+With FBS
+        Do Until .Cells(WR, 2) = ""
+                WR = WR + 1
+        Loop
+        .Cells(WR, 2) = WR - 7
+        .Cells(WR, 3) = j
+        .Cells(WR, 4) = Left(CStr(.Cells(WR, 3)), 4)
+        .Cells(WR, 5) = .Cells(WR, 4) & "Q" & Q
+        Ave = 0
+        For i = 6 To 28
+                .Cells(WR, i) = WS.Cells(i + 3, 4)
+                Ave = Ave + .Cells(WR, i)
+        Next i
+        .Cells(WR, 29) = Round(Ave / 19, 2)
+        .Cells(WR, 30) = IIf(WS.Cells(35, 3) = "", "N/A", WS.Cells(35, 3))
+        .Cells(WR, 31) = Now()
+        .Cells(WR, 32) = myMMitem.SenderName
+End With
+WB.Close
+MDB.Save
+
+End Sub
+
+Sub SaveAuditNotice()
+
+Dim myOLexp As Outlook.Explorer
+Dim myOLsel As Outlook.Selection
+Dim NewFolder, PA, DP As String
+
+Set myOLexp = Application.ActiveExplorer
+Set myOLsel = myOLexp.Selection
+  
+If myOLsel.Count = 0 Then g = MsgBox("No Item Selected !", vbCritical, "ZOL :("): End
+
+NewFolder = InputBox("Project Short Name? ")
+If NewFolder = "" Then End
+NewFolder = NewFolder & "\00_Notice\"
+
+DP = SpecialFolder(5, "") & NewFolder
+
+If Not Exists(False, DP, False) Then
+       RT = MsgBox("The Target Path :  " & DP & " Does Not Exist !", vbCritical, "ZOL :(")
+       Exit Sub
+End If
+  
+        Set myMMitem = myOLsel.Item(1)
+        'Set myMMitem = myOLsel.Item(MI)
+        myMMitem.SaveAs DP & "\" & LegalFileName(myMMitem.Subject) & ".msg", olMSG
+        Df = Shell("explorer.exe " & DP, vbNormalFocus)
+
+End Sub
+
+Public Sub FollowupAudit()
+
+Dim myInspector As Outlook.Inspector
+Dim myMMitem, Notice, R
+Dim DueDate, InCharge, StartDay, EndDay, T As String
+
+Set myInspector = Application.ActiveInspector
+Set myMMitem = myInspector.CurrentItem
+Set Notice = myMMitem.Forward
+
+For Each R In myMMitem.Recipients
+    If R.Type = olTo Then Notice.Recipients.Add R
+Next
+
+DueDate = InputBox("Due Date ?", "Follow-up Notice")
+If DueDate = "" Then End
+InCharge = InputBox("Who is in-charge ?", "Follow-up Notice")
+If InCharge = "" Then End
+StartDay = InputBox("Begin ?", "Follow-up Notice")
+If StartDay = "" Then End
+EndDay = InputBox("End ?", "Follow-up Notice")
+If EndDay = "" Then End
+
+T = "<html><p><b>Notice of Follow-up Audit</b></p>"
+T = T & "<p>Internal Audit will perform a follow-up audit of the management plans in the issued report below that are due in " & DueDate & ". " & InCharge & " will be responsible for the Engagement.</p>The audit work will be performed from " & StartDay & " to " & EndDay & ", and we will send a list of requested items prior to the audit."
+T = T & "<p>Internal Audit activities are conducted in accordance with the International Standards for the Professional Practice of Internal Auditing of the Institute of Internal Auditors.  Furthermore, Internal Audit uses the COSO Internal Controls - Integrated Framework model in the design of the overall approach to conducting audits at the Company.</p>"
+T = T & "If you have any questions, please do not hesitate to contact " & InCharge & ",  Larry Zheng or Calvin Hsu. Please feel free to forward this to any relevant individuals who will be assisting the audit."
+
+With Notice
+
+    .HTMLBody = "<html><font face=Calibri><font size=4>" & T & .HTMLBody
+    .Subject = Right(.Subject, Len(.Subject) - 3) & " - Follow-up"
+    Set R = .Recipients.Add("IAUS")
+    R.Type = olCC
+    .Recipients.ResolveAll
+    .Display
+    
+End With
+
+End Sub
+
+Public Sub FeedbackReq()
+
+Dim myMMitem, Notice, R
+'Dim DueDate, InCharge, StartDay, EndDay, T As String
+
+T = "<html><p><b>Notice of Follow-up Audit</b></p>"
+T = T & "<p>Internal Audit will perform a follow-up audit of the management plans in the issued report below that are due in " & DueDate & ". " & InCharge & " will be responsible for the Engagement.</p>The audit work will be performed from " & StartDay & " to " & EndDay & ", and we will send a list of requested items prior to the audit."
+T = T & "<p>Internal Audit activities are conducted in accordance with the International Standards for the Professional Practice of Internal Auditing of the Institute of Internal Auditors.  Furthermore, Internal Audit uses the COSO Internal Controls - Integrated Framework model in the design of the overall approach to conducting audits at the Company.</p>"
+T = T & "If you have any questions, please do not hesitate to contact " & InCharge & ",  Larry Zheng or Calvin Hsu. Please feel free to forward this to any relevant individuals who will be assisting the audit."
+
+With Notice
+
+    .HTMLBody = "<html><font face=Calibri><font size=4>" & T & .HTMLBody
+    .Subject = Right(.Subject, Len(.Subject) - 3) & " - Follow-up"
+    Set R = .Recipients.Add("IAUS")
+    R.Type = olCC
+    .Recipients.ResolveAll
+    .Display
+    
+End With
+
+End Sub
+
